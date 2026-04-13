@@ -1,34 +1,65 @@
-.App-logo {
-    height: 40vmin;
-    pointer-events: none;
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Manrope:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-    .App-logo {
-        animation: App-logo-spin infinite 20s linear;
-    }
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
 }
 
-.App-header {
-    background-color: #0f0f10;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    font-size: calc(10px + 2vmin);
-    color: white;
+::-webkit-scrollbar-track {
+  background: #F1F8E9;
 }
 
-.App-link {
-    color: #61dafb;
+::-webkit-scrollbar-thumb {
+  background: #8D6E63;
+  border-radius: 999px;
+  opacity: 0.3;
 }
 
-@keyframes App-logo-spin {
-    from {
-        transform: rotate(0deg);
-    }
-    to {
-        transform: rotate(360deg);
-    }
+::-webkit-scrollbar-thumb:hover {
+  background: #6D4C41;
+}
+
+/* Recharts labels */
+.recharts-text {
+  font-family: 'Manrope', sans-serif;
+  font-size: 12px;
+}
+
+.recharts-default-tooltip {
+  border-radius: 8px !important;
+  border-color: rgba(141, 110, 99, 0.15) !important;
+  font-family: 'Manrope', sans-serif !important;
+}
+
+/* Focus outline */
+*:focus-visible {
+  outline: 2px solid #1B5E20;
+  outline-offset: 2px;
+}
+
+/* Transition defaults */
+button, a, input, select {
+  transition: all 0.2s ease;
+}
+
+/* Animate on entry */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.3s ease-out;
 }
