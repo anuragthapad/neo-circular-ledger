@@ -1,0 +1,128 @@
+{
+  "theme": "Light",
+  "archetype": "1 (Organic & Earthy)",
+  "core_philosophy": "A grounded, matte, and highly functional control room for the circular economy. Mixing earthy warmth with financial precision.",
+  "colors": {
+    "background": {
+      "default": "#F1F8E9",
+      "card": "#FFFFFF",
+      "muted": "#E8F5E9"
+    },
+    "primary": {
+      "default": "#1B5E20",
+      "hover": "#144A18",
+      "text_on_primary": "#FFFFFF"
+    },
+    "secondary": {
+      "default": "#4CAF50",
+      "hover": "#388E3C",
+      "text_on_secondary": "#FFFFFF"
+    },
+    "accent": {
+      "default": "#8D6E63",
+      "hover": "#6D4C41",
+      "text_on_accent": "#FFFFFF"
+    },
+    "text": {
+      "primary": "#1A1C1A",
+      "secondary": "#4A554C",
+      "muted": "#758077"
+    },
+    "border": {
+      "default": "#8D6E63",
+      "opacity": "0.15"
+    },
+    "semantic": {
+      "success": "#2E7D32",
+      "warning": "#F57C00",
+      "error": "#D32F2F",
+      "info": "#0288D1"
+    }
+  },
+  "typography": {
+    "font_families": {
+      "heading": "'Outfit', sans-serif",
+      "body": "'Manrope', sans-serif",
+      "mono": "'JetBrains Mono', monospace"
+    },
+    "scale": {
+      "h1": "text-4xl sm:text-5xl tracking-tight leading-none",
+      "h2": "text-2xl sm:text-3xl tracking-tight",
+      "h3": "text-xl sm:text-2xl",
+      "h4": "text-lg sm:text-xl font-medium",
+      "body": "text-base leading-relaxed",
+      "small": "text-sm",
+      "label": "text-xs tracking-[0.2em] uppercase font-semibold text-[#4A554C]"
+    }
+  },
+  "layout_and_spacing": {
+    "strategy": "Control Room Grid",
+    "base_padding": "p-6",
+    "gap": "gap-4 md:gap-6",
+    "container_max": "max-w-[1600px] mx-auto",
+    "card_style": "bg-white rounded-lg border border-[#8D6E63]/15 shadow-sm transition-all duration-200"
+  },
+  "motion_and_interactions": {
+    "hover": "hover:-translate-y-0.5 hover:shadow-md hover:border-[#8D6E63]/30 transition-all duration-200",
+    "active": "active:translate-y-0 active:shadow-sm",
+    "focus": "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1B5E20] focus-visible:ring-offset-2"
+  },
+  "components": {
+    "buttons": {
+      "primary": "bg-[#1B5E20] text-white hover:bg-[#144A18] rounded-md px-4 py-2 font-medium tracking-wide shadow-sm",
+      "secondary": "bg-[#4CAF50] text-white hover:bg-[#388E3C] rounded-md px-4 py-2 font-medium shadow-sm",
+      "outline": "border border-[#1B5E20] text-[#1B5E20] hover:bg-[#1B5E20]/5 rounded-md px-4 py-2 font-medium",
+      "ghost": "text-[#4A554C] hover:text-[#1B5E20] hover:bg-[#1B5E20]/5 px-4 py-2 rounded-md"
+    },
+    "cards": {
+      "dashboard_widget": "bg-white border border-[#8D6E63]/15 rounded-lg p-6 shadow-sm",
+      "data_table": "bg-white border border-[#8D6E63]/15 rounded-lg overflow-hidden shadow-sm"
+    },
+    "inputs": {
+      "default": "border border-[#8D6E63]/30 rounded-md px-3 py-2 bg-white text-[#1A1C1A] placeholder:text-[#758077] focus:ring-2 focus:ring-[#1B5E20]/50 focus:border-[#1B5E20] transition-colors"
+    },
+    "navigation": {
+      "header": "sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-[#8D6E63]/15",
+      "sidebar": "bg-white border-r border-[#8D6E63]/15 h-screen overflow-y-auto"
+    }
+  },
+  "icons": {
+    "library": "lucide-react",
+    "style": "stroke-width: 1.5, regular, scaled to match text"
+  },
+  "media": {
+    "hero_and_auth": {
+      "url": "https://static.prod-images.emergentagent.com/jobs/c0707fca-4c2c-4a27-88e9-2f13d304cd29/images/37731a694d031f17a413a75e9a9c2fd4f027c59f9a7d8bd26cb162d2d926f0da.png",
+      "description": "Abstract organic background texture for login/auth backgrounds."
+    },
+    "abstract_decor": {
+      "url": "https://static.prod-images.emergentagent.com/jobs/c0707fca-4c2c-4a27-88e9-2f13d304cd29/images/259ce653303188d91356b5bc7a37ae534087146ad91bdf1ebed26b574086477e.png",
+      "description": "3D clay geometric representation of circular economy. Use in empty states or investor dashboards."
+    },
+    "biogas_plant": {
+      "url": "https://images.unsplash.com/photo-1637177937457-27543b0327aa?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2ODh8MHwxfHNlYXJjaHwzfHxiaW9nYXMlMjBwbGFudCUyMGluZHVzdHJpYWx8ZW58MHx8fHwxNzc2MDg4NTY0fDA&ixlib=rb-4.1.0&q=85",
+      "description": "Industrial facility for the CBG Plant Operator dashboard visual/header."
+    },
+    "rural_farmer": {
+      "url": "https://images.unsplash.com/photo-1684691583342-0dfafc6942cf?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2NzR8MHwxfHNlYXJjaHwzfHxmYXJtZXIlMjBydXJhbCUyMGFncmljdWx0dXJlfGVufDB8fHx8MTc3NjA4ODU2NHww&ixlib=rb-4.1.0&q=85",
+      "description": "Rural farmer in field. Use in the Village Ward dashboard or profile area."
+    }
+  },
+  "accessibility_and_testing": {
+    "contrast": "Ensure text meets APCA/WCAG AA contrast over backgrounds. Use shadow if text is over images.",
+    "testing_attributes": "All interactive elements MUST include data-testid attribute in kebab-case format (e.g., data-testid='login-submit-button').",
+    "motion_preference": "Respect prefers-reduced-motion via Tailwind variants."
+  },
+  "instructions_to_main_agent": [
+    "Build standard dashboard layouts with a sidebar and a top sticky header. The sidebar should have role-based navigation links.",
+    "Do not use dark mode colors; stick strictly to the Light Theme Earthy palette.",
+    "Use Outfit for headings and Manrope for tables and body text. Load fonts properly in HTML.",
+    "Ensure all dashboard cards (widgets) use the 'Control Room Grid' style with crisp 1px borders and slight 8px border-radius.",
+    "Integrate recharts/shadcn charts heavily to display waste stats, carbon credits, and investments. Add labels and legends matching the color palette.",
+    "Do not use transparent background on header. Ensure z-50 and use backdrop-blur.",
+    "Store entries via React state/context or LocalStorage only since this is a frontend-only app.",
+    "For the Waste Entry form, auto-calculate Carbon Credits (e.g., 1 ton biomass = X credits).",
+    "Never use raw image placeholder services; rely on the provided media URLs.",
+    "Ensure 'data-testid' is attached to all buttons, input fields, forms, and key display items."
+  ]
+}
