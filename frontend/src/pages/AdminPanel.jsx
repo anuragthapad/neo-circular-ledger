@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useApp } from '../context/AppContext';
 import Header from '../components/layout/Header';
 import Sidebar from '../components/layout/Sidebar';
@@ -7,7 +7,9 @@ import { Badge } from '../components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell } from 'recharts';
-import { Users, FileText, BarChart3, Settings, Leaf, Factory, TrendingUp, ShieldCheck, Zap, IndianRupee, Scale } from 'lucide-react';
+import { Users, FileText, BarChart3, Settings, Leaf, Factory, TrendingUp, ShieldCheck, Zap, IndianRupee, Scale, Download, CalendarDays } from 'lucide-react';
+import { exportCSV, filterByDateRange } from '../utils/helpers';
+import { toast } from 'sonner';
 
 const CHART_COLORS = ['#1B5E20', '#4CAF50', '#8D6E63', '#F57C00'];
 const ROLE_COLORS = { ward: '#4CAF50', plant: '#1B5E20', investor: '#8D6E63', admin: '#1A1C1A' };
@@ -17,6 +19,8 @@ const ROLE_LABELS = { ward: 'Village Ward', plant: 'Plant Operator', investor: '
 export default function AdminPanel({ subPage }) {
   const { users, wasteEntries, processingLogs, investments, plants, notifications } = useApp();
   const [ledgerFilter, setLedgerFilter] = useState('all');
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
 
   const totalWaste = wasteEntries.reduce((s, e) => s + e.quantity, 0);
   const totalCredits = wasteEntries.reduce((s, e) => s + e.carbonCredits, 0);
@@ -102,7 +106,18 @@ export default function AdminPanel({ subPage }) {
       ...investments.map(inv => ({ ...inv, txType: 'investment', date: inv.timestamp })),
     ].sort((a, b) => new Date(b.date) - new Date(a.date));
 
-    const filtered = ledgerFilter === 'all' ? allTransactions : allTransactions.filter(t => t.txType === ledgerFilter);
+    const typeFiltered = ledgerFilter === 'all' ? allTransactions : allTransactions.filter(t => t.txType === ledgerFilter);
+    const filtered = filterByDateRange(typeFiltered, 'date', dateFrom, dateTo);
+
+    const handleExport = () => {
+      exportCSV(filtered, [
+        { label: 'Date', accessor: (r) => new Date(r.date).toLocaleDateString('en-IN') },
+        { label: 'Type', accessor: (r) => r.txType === 'waste_supply' ? 'Supply' : r.txType === 'processing' ? 'Processing' : 'Investment' },
+        { label: 'Details', accessor: (r) => r.txType === 'waste_supply' ? `${r.wardName} - ${r.wasteType}` : r.txType === 'processing' ? `${r.wardName} - ${r.wasteType}` : r.plantName },
+        { label: 'Amount', accessor: (r) => r.txType === 'waste_supply' ? `${r.quantity} kg / Rs ${r.payment}` : r.txType === 'processing' ? `${r.wasteProcessed} kg` : `Rs ${r.amount}` },
+      ], 'all_transactions');
+      toast.success('Transactions exported as CSV!');
+    };
 
     return (
       <div className="flex min-h-screen bg-[#F1F8E9]">
@@ -110,7 +125,8 @@ export default function AdminPanel({ subPage }) {
         <div className="flex-1 ml-64">
           <Header title="All Transactions" subtitle="System-wide ledger" />
           <main className="p-8 max-w-[1600px] mx-auto space-y-4">
-            <div className="flex gap-2">
+            {/* Type filters */}
+            <div className="flex flex-wrap gap-2">
               {['all', 'waste_supply', 'processing', 'investment'].map(f => (
                 <button
                   key={f}
@@ -127,6 +143,38 @@ export default function AdminPanel({ subPage }) {
               ))}
             </div>
 
+            {/* Date Filters + Export */}
+            <div className="flex flex-wrap items-end gap-3">
+              <div>
+                <label className="text-xs tracking-[0.15em] uppercase font-semibold text-[#4A554C] mb-1 block">From</label>
+                <div className="flex items-center gap-2 border border-[#8D6E63]/30 rounded-md px-3 py-2 bg-white">
+                  <CalendarDays className="w-4 h-4 text-[#758077]" strokeWidth={1.5} />
+                  <input data-testid="admin-date-from" type="date" value={dateFrom} onChange={e => setDateFrom(e.target.value)}
+                    className="bg-transparent text-sm text-[#1A1C1A] outline-none" />
+                </div>
+              </div>
+              <div>
+                <label className="text-xs tracking-[0.15em] uppercase font-semibold text-[#4A554C] mb-1 block">To</label>
+                <div className="flex items-center gap-2 border border-[#8D6E63]/30 rounded-md px-3 py-2 bg-white">
+                  <CalendarDays className="w-4 h-4 text-[#758077]" strokeWidth={1.5} />
+                  <input data-testid="admin-date-to" type="date" value={dateTo} onChange={e => setDateTo(e.target.value)}
+                    className="bg-transparent text-sm text-[#1A1C1A] outline-none" />
+                </div>
+              </div>
+              {(dateFrom || dateTo) && (
+                <button onClick={() => { setDateFrom(''); setDateTo(''); }}
+                  className="px-3 py-2 text-xs font-medium text-[#8D6E63] hover:bg-[#8D6E63]/10 rounded-md transition-colors">
+                  Clear
+                </button>
+              )}
+              <div className="ml-auto">
+                <button data-testid="admin-export-csv" onClick={handleExport}
+                  className="flex items-center gap-2 bg-[#1B5E20] text-white hover:bg-[#144A18] rounded-md px-4 py-2 text-sm font-medium transition-colors shadow-sm">
+                  <Download className="w-4 h-4" strokeWidth={1.5} /> Export CSV
+                </button>
+              </div>
+            </div>
+
             <Card className="border-[#8D6E63]/15 bg-white shadow-sm">
               <CardContent className="p-0">
                 <Table>
@@ -139,36 +187,41 @@ export default function AdminPanel({ subPage }) {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {filtered.slice(0, 50).map((tx, i) => (
-                      <TableRow key={`${tx.txType}-${tx.id || i}`}>
-                        <TableCell className="text-sm text-[#4A554C]">
-                          {new Date(tx.date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
-                        </TableCell>
-                        <TableCell>
-                          <Badge className={`border-0 text-xs ${
-                            tx.txType === 'waste_supply' ? 'bg-[#E8F5E9] text-[#1B5E20]' :
-                            tx.txType === 'processing' ? 'bg-[#FFF8E1] text-[#F57C00]' :
-                            'bg-[#E3F2FD] text-[#0288D1]'
-                          }`}>
-                            {tx.txType === 'waste_supply' ? 'Supply' : tx.txType === 'processing' ? 'Processing' : 'Investment'}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="text-sm text-[#4A554C]">
-                          {tx.txType === 'waste_supply' ? `${tx.wardName} — ${tx.wasteType?.replace('_', ' ')}` :
-                           tx.txType === 'processing' ? `${tx.wardName} — ${tx.wasteType?.replace('_', ' ')}` :
-                           tx.plantName}
-                        </TableCell>
-                        <TableCell className="text-sm font-medium">
-                          {tx.txType === 'waste_supply' ? `${tx.quantity?.toLocaleString('en-IN')} kg / Rs ${tx.payment?.toLocaleString('en-IN')}` :
-                           tx.txType === 'processing' ? `${tx.wasteProcessed?.toLocaleString('en-IN')} kg processed` :
-                           `Rs ${tx.amount?.toLocaleString('en-IN')}`}
-                        </TableCell>
-                      </TableRow>
-                    ))}
+                    {filtered.length === 0 ? (
+                      <TableRow><TableCell colSpan={4} className="text-center text-sm text-[#758077] py-8">No transactions found</TableCell></TableRow>
+                    ) : (
+                      filtered.slice(0, 50).map((tx, i) => (
+                        <TableRow key={`${tx.txType}-${tx.id || i}`}>
+                          <TableCell className="text-sm text-[#4A554C]">
+                            {new Date(tx.date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                          </TableCell>
+                          <TableCell>
+                            <Badge className={`border-0 text-xs ${
+                              tx.txType === 'waste_supply' ? 'bg-[#E8F5E9] text-[#1B5E20]' :
+                              tx.txType === 'processing' ? 'bg-[#FFF8E1] text-[#F57C00]' :
+                              'bg-[#E3F2FD] text-[#0288D1]'
+                            }`}>
+                              {tx.txType === 'waste_supply' ? 'Supply' : tx.txType === 'processing' ? 'Processing' : 'Investment'}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-sm text-[#4A554C]">
+                            {tx.txType === 'waste_supply' ? `${tx.wardName} — ${tx.wasteType?.replace('_', ' ')}` :
+                             tx.txType === 'processing' ? `${tx.wardName} — ${tx.wasteType?.replace('_', ' ')}` :
+                             tx.plantName}
+                          </TableCell>
+                          <TableCell className="text-sm font-medium">
+                            {tx.txType === 'waste_supply' ? `${tx.quantity?.toLocaleString('en-IN')} kg / Rs ${tx.payment?.toLocaleString('en-IN')}` :
+                             tx.txType === 'processing' ? `${tx.wasteProcessed?.toLocaleString('en-IN')} kg processed` :
+                             `Rs ${tx.amount?.toLocaleString('en-IN')}`}
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    )}
                   </TableBody>
                 </Table>
               </CardContent>
             </Card>
+            <p className="text-xs text-[#758077]">{filtered.length} transactions shown</p>
           </main>
         </div>
       </div>

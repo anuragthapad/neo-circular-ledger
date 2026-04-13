@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useApp } from '../context/AppContext';
 import Header from '../components/layout/Header';
 import Sidebar from '../components/layout/Sidebar';
@@ -7,9 +7,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Badge } from '../components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/ui/table';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts';
-import { Leaf, IndianRupee, Zap, Scale, TrendingUp, CheckCircle2, Clock } from 'lucide-react';
+import { Leaf, IndianRupee, Zap, Scale, TrendingUp, CheckCircle2, Clock, Download, Lightbulb, CalendarDays } from 'lucide-react';
 import { WASTE_TYPES, CARBON_CREDIT_FACTORS, PAYMENT_RATES } from '../data/seedData';
 import { toast } from 'sonner';
+import { exportCSV, filterByDateRange } from '../utils/helpers';
 
 const PIE_COLORS = ['#4CAF50', '#8D6E63', '#1B5E20'];
 
@@ -163,60 +164,7 @@ export default function VillageWardDashboard({ subPage }) {
   }
 
   if (subPage === 'ledger') {
-    return (
-      <div className="flex min-h-screen bg-[#F1F8E9]">
-        <Sidebar />
-        <div className="flex-1 ml-64">
-          <Header title="My Ledger" subtitle="Transaction history" />
-          <main className="p-8 max-w-[1600px] mx-auto">
-            <Card className="border-[#8D6E63]/15 bg-white shadow-sm">
-              <CardContent className="p-0">
-                <Table>
-                  <TableHeader>
-                    <TableRow className="bg-[#F1F8E9]/50">
-                      <TableHead className="text-[#4A554C]">Date</TableHead>
-                      <TableHead className="text-[#4A554C]">Waste Type</TableHead>
-                      <TableHead className="text-[#4A554C]">Quantity (kg)</TableHead>
-                      <TableHead className="text-[#4A554C]">Carbon Credits</TableHead>
-                      <TableHead className="text-[#4A554C]">Payment (Rs)</TableHead>
-                      <TableHead className="text-[#4A554C]">Status</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {myEntries.map(entry => (
-                      <TableRow key={entry.id} data-testid={`ledger-row-${entry.id}`}>
-                        <TableCell className="text-sm text-[#4A554C]">
-                          {new Date(entry.timestamp).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
-                        </TableCell>
-                        <TableCell>
-                          <Badge className="bg-[#E8F5E9] text-[#1B5E20] border-0 text-xs">
-                            {entry.wasteType.replace('_', ' ')}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="text-sm font-medium text-[#1A1C1A]">{entry.quantity.toLocaleString('en-IN')}</TableCell>
-                        <TableCell className="text-sm text-[#1B5E20] font-medium">{entry.carbonCredits}</TableCell>
-                        <TableCell className="text-sm font-medium text-[#1A1C1A]">Rs {entry.payment.toLocaleString('en-IN')}</TableCell>
-                        <TableCell>
-                          {entry.paymentStatus === 'paid' ? (
-                            <Badge className="bg-[#E8F5E9] text-[#2E7D32] border-0 text-xs flex items-center gap-1 w-fit">
-                              <CheckCircle2 className="w-3 h-3" /> Paid
-                            </Badge>
-                          ) : (
-                            <Badge className="bg-[#FFF8E1] text-[#F57C00] border-0 text-xs flex items-center gap-1 w-fit">
-                              <Clock className="w-3 h-3" /> Pending
-                            </Badge>
-                          )}
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </CardContent>
-            </Card>
-          </main>
-        </div>
-      </div>
-    );
+    return <WardLedger myEntries={myEntries} />;
   }
 
   if (subPage === 'notifications') {
@@ -344,6 +292,9 @@ export default function VillageWardDashboard({ subPage }) {
               </Table>
             </CardContent>
           </Card>
+
+          {/* AI Waste Mix Recommendation */}
+          <AIRecommendation myEntries={myEntries} />
         </main>
       </div>
     </div>
@@ -411,5 +362,210 @@ function NotificationsView() {
         </main>
       </div>
     </div>
+  );
+}
+
+function WardLedger({ myEntries }) {
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
+
+  const filtered = useMemo(() => filterByDateRange(myEntries, 'timestamp', dateFrom, dateTo), [myEntries, dateFrom, dateTo]);
+
+  const handleExport = () => {
+    exportCSV(filtered, [
+      { label: 'Date', accessor: (r) => new Date(r.timestamp).toLocaleDateString('en-IN') },
+      { label: 'Waste Type', accessor: (r) => r.wasteType.replace('_', ' ') },
+      { label: 'Quantity (kg)', accessor: 'quantity' },
+      { label: 'Carbon Credits', accessor: 'carbonCredits' },
+      { label: 'Payment (Rs)', accessor: 'payment' },
+      { label: 'Status', accessor: 'paymentStatus' },
+    ], 'ward_ledger');
+    toast.success('Ledger exported as CSV!');
+  };
+
+  return (
+    <div className="flex min-h-screen bg-[#F1F8E9]">
+      <Sidebar />
+      <div className="flex-1 ml-64">
+        <Header title="My Ledger" subtitle="Transaction history" />
+        <main className="p-8 max-w-[1600px] mx-auto space-y-4">
+          {/* Date Filters + Export */}
+          <div className="flex flex-wrap items-end gap-3">
+            <div>
+              <label className="text-xs tracking-[0.15em] uppercase font-semibold text-[#4A554C] mb-1 block">From</label>
+              <div className="flex items-center gap-2 border border-[#8D6E63]/30 rounded-md px-3 py-2 bg-white">
+                <CalendarDays className="w-4 h-4 text-[#758077]" strokeWidth={1.5} />
+                <input
+                  data-testid="date-from"
+                  type="date"
+                  value={dateFrom}
+                  onChange={e => setDateFrom(e.target.value)}
+                  className="bg-transparent text-sm text-[#1A1C1A] outline-none"
+                />
+              </div>
+            </div>
+            <div>
+              <label className="text-xs tracking-[0.15em] uppercase font-semibold text-[#4A554C] mb-1 block">To</label>
+              <div className="flex items-center gap-2 border border-[#8D6E63]/30 rounded-md px-3 py-2 bg-white">
+                <CalendarDays className="w-4 h-4 text-[#758077]" strokeWidth={1.5} />
+                <input
+                  data-testid="date-to"
+                  type="date"
+                  value={dateTo}
+                  onChange={e => setDateTo(e.target.value)}
+                  className="bg-transparent text-sm text-[#1A1C1A] outline-none"
+                />
+              </div>
+            </div>
+            {(dateFrom || dateTo) && (
+              <button
+                data-testid="clear-date-filter"
+                onClick={() => { setDateFrom(''); setDateTo(''); }}
+                className="px-3 py-2 text-xs font-medium text-[#8D6E63] hover:bg-[#8D6E63]/10 rounded-md transition-colors"
+              >
+                Clear
+              </button>
+            )}
+            <div className="ml-auto">
+              <button
+                data-testid="export-csv-btn"
+                onClick={handleExport}
+                className="flex items-center gap-2 bg-[#1B5E20] text-white hover:bg-[#144A18] rounded-md px-4 py-2 text-sm font-medium transition-colors shadow-sm"
+              >
+                <Download className="w-4 h-4" strokeWidth={1.5} /> Export CSV
+              </button>
+            </div>
+          </div>
+
+          <Card className="border-[#8D6E63]/15 bg-white shadow-sm">
+            <CardContent className="p-0">
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-[#F1F8E9]/50">
+                    <TableHead className="text-[#4A554C]">Date</TableHead>
+                    <TableHead className="text-[#4A554C]">Waste Type</TableHead>
+                    <TableHead className="text-[#4A554C]">Quantity (kg)</TableHead>
+                    <TableHead className="text-[#4A554C]">Carbon Credits</TableHead>
+                    <TableHead className="text-[#4A554C]">Payment (Rs)</TableHead>
+                    <TableHead className="text-[#4A554C]">Status</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filtered.length === 0 ? (
+                    <TableRow><TableCell colSpan={6} className="text-center text-sm text-[#758077] py-8">No entries found for selected date range</TableCell></TableRow>
+                  ) : (
+                    filtered.map(entry => (
+                      <TableRow key={entry.id} data-testid={`ledger-row-${entry.id}`}>
+                        <TableCell className="text-sm text-[#4A554C]">
+                          {new Date(entry.timestamp).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                        </TableCell>
+                        <TableCell>
+                          <Badge className="bg-[#E8F5E9] text-[#1B5E20] border-0 text-xs">
+                            {entry.wasteType.replace('_', ' ')}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-sm font-medium text-[#1A1C1A]">{entry.quantity.toLocaleString('en-IN')}</TableCell>
+                        <TableCell className="text-sm text-[#1B5E20] font-medium">{entry.carbonCredits}</TableCell>
+                        <TableCell className="text-sm font-medium text-[#1A1C1A]">Rs {entry.payment.toLocaleString('en-IN')}</TableCell>
+                        <TableCell>
+                          {entry.paymentStatus === 'paid' ? (
+                            <Badge className="bg-[#E8F5E9] text-[#2E7D32] border-0 text-xs flex items-center gap-1 w-fit">
+                              <CheckCircle2 className="w-3 h-3" /> Paid
+                            </Badge>
+                          ) : (
+                            <Badge className="bg-[#FFF8E1] text-[#F57C00] border-0 text-xs flex items-center gap-1 w-fit">
+                              <Clock className="w-3 h-3" /> Pending
+                            </Badge>
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+          <p className="text-xs text-[#758077]">{filtered.length} entries shown</p>
+        </main>
+      </div>
+    </div>
+  );
+}
+
+function AIRecommendation({ myEntries }) {
+  const wasteByType = WASTE_TYPES.map(wt => ({
+    type: wt.value,
+    label: wt.label,
+    quantity: myEntries.filter(e => e.wasteType === wt.value).reduce((s, e) => s + e.quantity, 0),
+    creditFactor: CARBON_CREDIT_FACTORS[wt.value],
+    payRate: PAYMENT_RATES[wt.value],
+  }));
+
+  const totalQty = wasteByType.reduce((s, w) => s + w.quantity, 0);
+  const bestCreditType = [...wasteByType].sort((a, b) => b.creditFactor - a.creditFactor)[0];
+  const bestPayType = [...wasteByType].sort((a, b) => b.payRate - a.payRate)[0];
+
+  const currentCreditsPerKg = totalQty > 0
+    ? myEntries.reduce((s, e) => s + e.carbonCredits, 0) / totalQty
+    : 0;
+
+  const optimalCreditsPerKg = bestCreditType.creditFactor;
+  const improvementPotential = currentCreditsPerKg > 0
+    ? Math.round(((optimalCreditsPerKg - currentCreditsPerKg) / currentCreditsPerKg) * 100)
+    : 0;
+
+  const underSupplied = wasteByType.filter(w => w.quantity === 0);
+
+  return (
+    <Card data-testid="ai-recommendation" className="border-[#4CAF50]/20 bg-[#E8F5E9]/30 shadow-sm">
+      <CardHeader className="pb-2">
+        <CardTitle className="text-base flex items-center gap-2" style={{ fontFamily: "'Outfit', sans-serif" }}>
+          <Lightbulb className="w-5 h-5 text-[#F57C00]" strokeWidth={1.5} />
+          Smart Waste Mix Recommendation
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="bg-white rounded-lg p-4 border border-[#4CAF50]/15">
+            <p className="text-xs font-semibold text-[#758077] uppercase tracking-wide mb-2">Maximize Carbon Credits</p>
+            <p className="text-sm text-[#1A1C1A]">
+              Increase your <strong className="text-[#1B5E20]">{bestCreditType.label}</strong> supply.
+              It yields <strong>{bestCreditType.creditFactor * 1000} credits per ton</strong> — the highest rate available.
+            </p>
+            {improvementPotential > 0 && (
+              <Badge className="bg-[#E8F5E9] text-[#1B5E20] border-0 text-xs mt-2">
+                Up to {improvementPotential}% more credits possible
+              </Badge>
+            )}
+          </div>
+          <div className="bg-white rounded-lg p-4 border border-[#8D6E63]/15">
+            <p className="text-xs font-semibold text-[#758077] uppercase tracking-wide mb-2">Maximize Earnings</p>
+            <p className="text-sm text-[#1A1C1A]">
+              <strong className="text-[#8D6E63]">{bestPayType.label}</strong> pays
+              <strong> Rs {bestPayType.payRate}/kg</strong> — the best rate.
+              {bestPayType.type !== bestCreditType.type && ' Balance it with high-credit types for optimal returns.'}
+            </p>
+          </div>
+        </div>
+
+        {underSupplied.length > 0 && (
+          <div className="bg-white rounded-lg p-4 border border-[#F57C00]/15">
+            <p className="text-xs font-semibold text-[#F57C00] uppercase tracking-wide mb-1">Diversification Opportunity</p>
+            <p className="text-sm text-[#4A554C]">
+              You haven't supplied: {underSupplied.map(u => u.label).join(', ')}.
+              Diversifying your waste mix can increase total carbon credits.
+            </p>
+          </div>
+        )}
+
+        <div className="bg-[#F1F8E9] rounded-lg p-4 border border-[#4CAF50]/10">
+          <p className="text-xs font-semibold text-[#1B5E20] mb-1">OPTIMAL MIX SUGGESTION</p>
+          <p className="text-sm text-[#4A554C]">
+            For every 100kg, try: <strong>40kg Cow Dung</strong> (highest credits) + <strong>35kg Stubble</strong> (balanced) + <strong>25kg Biodegradable</strong> (volume).
+            This yields ~0.163 tCO2e per 100kg — 8% better than equal distribution.
+          </p>
+        </div>
+      </CardContent>
+    </Card>
   );
 }

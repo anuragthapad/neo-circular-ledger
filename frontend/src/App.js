@@ -8,6 +8,7 @@ import VillageWardDashboard from "./pages/VillageWardDashboard";
 import PlantOperatorDashboard from "./pages/PlantOperatorDashboard";
 import InvestorDashboard from "./pages/InvestorDashboard";
 import AdminPanel from "./pages/AdminPanel";
+import ImpactReport from "./pages/ImpactReport";
 
 function ProtectedRoute({ role, children }) {
   const { currentUser } = useApp();
@@ -27,6 +28,7 @@ function AppRoutes() {
       <Route path="/ward" element={<ProtectedRoute role="ward"><VillageWardDashboard /></ProtectedRoute>} />
       <Route path="/ward/entry" element={<ProtectedRoute role="ward"><VillageWardDashboard subPage="entry" /></ProtectedRoute>} />
       <Route path="/ward/ledger" element={<ProtectedRoute role="ward"><VillageWardDashboard subPage="ledger" /></ProtectedRoute>} />
+      <Route path="/ward/impact" element={<ProtectedRoute role="ward"><ImpactReport /></ProtectedRoute>} />
       <Route path="/ward/notifications" element={<ProtectedRoute role="ward"><VillageWardDashboard subPage="notifications" /></ProtectedRoute>} />
 
       {/* Plant Operator */}

@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useApp } from '../../context/AppContext';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
   Leaf, Factory, TrendingUp, ShieldCheck, LayoutDashboard, FileText,
-  Bell, Trophy, PlusCircle, Package, BarChart3, Users, Settings, LogOut
+  Bell, Trophy, PlusCircle, Package, BarChart3, Users, Settings, LogOut,
+  FileBarChart, X
 } from 'lucide-react';
 
 const NAV_ITEMS = {
@@ -11,6 +12,7 @@ const NAV_ITEMS = {
     { label: 'Dashboard', path: '/ward', icon: LayoutDashboard },
     { label: 'Add Waste Entry', path: '/ward/entry', icon: PlusCircle },
     { label: 'My Ledger', path: '/ward/ledger', icon: FileText },
+    { label: 'Impact Report', path: '/ward/impact', icon: FileBarChart },
     { label: 'Notifications', path: '/ward/notifications', icon: Bell },
   ],
   plant: [
@@ -50,10 +52,16 @@ const ROLE_ICONS = {
   admin: ShieldCheck,
 };
 
-export default function Sidebar() {
+export default function Sidebar({ isOpen, onClose }) {
   const { currentUser, logout } = useApp();
   const navigate = useNavigate();
   const location = useLocation();
+  const [mobileOpen, setMobileOpen] = useState(false);
+
+  const open = isOpen !== undefined ? isOpen : mobileOpen;
+  const close = onClose || (() => setMobileOpen(false));
+
+  useEffect(() => { close(); }, [location.pathname]);
 
   if (!currentUser) return null;
 
@@ -61,28 +69,39 @@ export default function Sidebar() {
   const RoleIcon = ROLE_ICONS[currentUser.role] || Leaf;
 
   return (
-    <aside
-      data-testid="sidebar"
-      className="fixed left-0 top-0 w-64 h-screen bg-white border-r border-[#8D6E63]/15 flex flex-col z-40"
-      style={{ fontFamily: "'Manrope', sans-serif" }}
-    >
+    <>
+      {/* Mobile overlay */}
+      {open && (
+        <div className="fixed inset-0 bg-black/30 z-40 lg:hidden" onClick={close} />
+      )}
+      <aside
+        data-testid="sidebar"
+        className={`fixed left-0 top-0 w-64 h-screen bg-white border-r border-[#8D6E63]/15 flex flex-col z-50 transition-transform duration-200
+          lg:translate-x-0 ${open ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}
+        style={{ fontFamily: "'Manrope', sans-serif" }}
+      >
       {/* Brand */}
       <div className="p-5 border-b border-[#8D6E63]/15">
-        <div className="flex items-center gap-2.5">
-          <div className="w-9 h-9 rounded-lg bg-[#1B5E20] flex items-center justify-center">
-            <Leaf className="w-5 h-5 text-white" strokeWidth={1.5} />
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2.5">
+            <div className="w-9 h-9 rounded-lg bg-[#1B5E20] flex items-center justify-center">
+              <Leaf className="w-5 h-5 text-white" strokeWidth={1.5} />
+            </div>
+            <div>
+              <h1
+                className="text-base font-bold text-[#1A1C1A] leading-tight"
+                style={{ fontFamily: "'Outfit', sans-serif" }}
+              >
+                Neo Circular
+              </h1>
+              <p className="text-[10px] tracking-[0.15em] uppercase text-[#758077] font-semibold">
+                Ledger
+              </p>
+            </div>
           </div>
-          <div>
-            <h1
-              className="text-base font-bold text-[#1A1C1A] leading-tight"
-              style={{ fontFamily: "'Outfit', sans-serif" }}
-            >
-              Neo Circular
-            </h1>
-            <p className="text-[10px] tracking-[0.15em] uppercase text-[#758077] font-semibold">
-              Ledger
-            </p>
-          </div>
+          <button onClick={close} className="lg:hidden p-1 rounded-md hover:bg-[#8D6E63]/10">
+            <X className="w-5 h-5 text-[#758077]" />
+          </button>
         </div>
       </div>
 
@@ -140,5 +159,6 @@ export default function Sidebar() {
         </button>
       </div>
     </aside>
+    </>
   );
 }

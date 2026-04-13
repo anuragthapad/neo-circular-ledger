@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
-import { Bell, Search, X } from 'lucide-react';
+import { Bell, Search, X, Menu } from 'lucide-react';
 
-export default function Header({ title, subtitle }) {
+export default function Header({ title, subtitle, onMenuToggle }) {
   const { currentUser, notifications, markNotificationRead } = useApp();
   const [showNotifs, setShowNotifs] = useState(false);
 
@@ -14,11 +14,20 @@ export default function Header({ title, subtitle }) {
   return (
     <header
       data-testid="app-header"
-      className="sticky top-0 z-30 bg-white/80 backdrop-blur-md border-b border-[#8D6E63]/15 px-8 py-4"
+      className="sticky top-0 z-30 bg-white/80 backdrop-blur-md border-b border-[#8D6E63]/15 px-4 md:px-8 py-4"
       style={{ fontFamily: "'Manrope', sans-serif" }}
     >
       <div className="flex items-center justify-between">
-        <div>
+        <div className="flex items-center gap-3">
+          {/* Hamburger for mobile */}
+          <button
+            data-testid="mobile-menu-btn"
+            onClick={onMenuToggle}
+            className="lg:hidden p-2 rounded-md hover:bg-[#1B5E20]/5 transition-colors"
+          >
+            <Menu className="w-5 h-5 text-[#4A554C]" strokeWidth={1.5} />
+          </button>
+          <div>
           <h2
             data-testid="page-title"
             className="text-2xl font-bold text-[#1A1C1A] tracking-tight"
@@ -29,6 +38,7 @@ export default function Header({ title, subtitle }) {
           {subtitle && (
             <p className="text-sm text-[#758077] mt-0.5">{subtitle}</p>
           )}
+          </div>
         </div>
 
         <div className="flex items-center gap-4">

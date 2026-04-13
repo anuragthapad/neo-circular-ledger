@@ -63,3 +63,27 @@ button, a, input, select {
 .animate-fade-in-up {
   animation: fadeInUp 0.3s ease-out;
 }
+
+/* Print styles for Impact Report */
+@media print {
+  aside, header[data-testid="app-header"], [data-testid="print-report-btn"],
+  [data-testid="share-report-btn"], .print\\:hidden {
+    display: none !important;
+  }
+  .ml-64 {
+    margin-left: 0 !important;
+  }
+  .bg-\\[\\#F1F8E9\\] {
+    background: white !important;
+  }
+  .print\\:p-0 {
+    padding: 0 !important;
+  }
+}
+
+/* Mobile responsive overrides */
+@media (max-width: 1023px) {
+  .ml-64 {
+    margin-left: 0 !important;
+  }
+}

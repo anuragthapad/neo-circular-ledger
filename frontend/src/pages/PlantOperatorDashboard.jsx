@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useApp } from '../context/AppContext';
 import Header from '../components/layout/Header';
 import Sidebar from '../components/layout/Sidebar';
@@ -8,9 +8,10 @@ import { Badge } from '../components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/ui/table';
 import { Progress } from '../components/ui/progress';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell } from 'recharts';
-import { Factory, Zap, Leaf, Package, TrendingUp, Gauge } from 'lucide-react';
+import { Factory, Zap, Leaf, Package, TrendingUp, Gauge, Download, CalendarDays } from 'lucide-react';
 import { WASTE_TYPES } from '../data/seedData';
 import { toast } from 'sonner';
+import { exportCSV, filterByDateRange } from '../utils/helpers';
 
 const CHART_COLORS = ['#1B5E20', '#4CAF50', '#8D6E63', '#F57C00'];
 
@@ -204,52 +205,7 @@ export default function PlantOperatorDashboard({ subPage }) {
   }
 
   if (subPage === 'ledger') {
-    return (
-      <div className="flex min-h-screen bg-[#F1F8E9]">
-        <Sidebar />
-        <div className="flex-1 ml-64">
-          <Header title="Processing Ledger" subtitle="All processing records" />
-          <main className="p-8 max-w-[1600px] mx-auto">
-            <Card className="border-[#8D6E63]/15 bg-white shadow-sm">
-              <CardContent className="p-0">
-                <Table>
-                  <TableHeader>
-                    <TableRow className="bg-[#F1F8E9]/50">
-                      <TableHead className="text-[#4A554C]">Date</TableHead>
-                      <TableHead className="text-[#4A554C]">Ward</TableHead>
-                      <TableHead className="text-[#4A554C]">Type</TableHead>
-                      <TableHead className="text-[#4A554C]">Received</TableHead>
-                      <TableHead className="text-[#4A554C]">Processed</TableHead>
-                      <TableHead className="text-[#4A554C]">CBG (kg)</TableHead>
-                      <TableHead className="text-[#4A554C]">Manure (kg)</TableHead>
-                      <TableHead className="text-[#4A554C]">Credits</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {myLogs.map(log => (
-                      <TableRow key={log.id} data-testid={`processing-row-${log.id}`}>
-                        <TableCell className="text-sm text-[#4A554C]">
-                          {new Date(log.timestamp).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}
-                        </TableCell>
-                        <TableCell className="text-sm font-medium">{log.wardName}</TableCell>
-                        <TableCell>
-                          <Badge className="bg-[#E8F5E9] text-[#1B5E20] border-0 text-xs capitalize">{log.wasteType.replace('_', ' ')}</Badge>
-                        </TableCell>
-                        <TableCell className="text-sm">{log.wasteReceived.toLocaleString('en-IN')} kg</TableCell>
-                        <TableCell className="text-sm">{log.wasteProcessed.toLocaleString('en-IN')} kg</TableCell>
-                        <TableCell className="text-sm font-medium text-[#1B5E20]">{log.cbgOutput}</TableCell>
-                        <TableCell className="text-sm font-medium text-[#8D6E63]">{log.manureGenerated}</TableCell>
-                        <TableCell className="text-sm font-medium text-[#1B5E20]">{log.carbonCredits}</TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </CardContent>
-            </Card>
-          </main>
-        </div>
-      </div>
-    );
+    return <PlantLedger myLogs={myLogs} />;
   }
 
   if (subPage === 'notifications') {
@@ -396,6 +352,112 @@ function PlantNotifications() {
               )}
             </CardContent>
           </Card>
+        </main>
+      </div>
+    </div>
+  );
+}
+
+
+function PlantLedger({ myLogs }) {
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
+
+  const filtered = useMemo(() => filterByDateRange(myLogs, 'timestamp', dateFrom, dateTo), [myLogs, dateFrom, dateTo]);
+
+  const handleExport = () => {
+    exportCSV(filtered, [
+      { label: 'Date', accessor: (r) => new Date(r.timestamp).toLocaleDateString('en-IN') },
+      { label: 'Ward', accessor: 'wardName' },
+      { label: 'Waste Type', accessor: (r) => r.wasteType.replace('_', ' ') },
+      { label: 'Received (kg)', accessor: 'wasteReceived' },
+      { label: 'Processed (kg)', accessor: 'wasteProcessed' },
+      { label: 'CBG Output (kg)', accessor: 'cbgOutput' },
+      { label: 'Manure (kg)', accessor: 'manureGenerated' },
+      { label: 'Carbon Credits', accessor: 'carbonCredits' },
+    ], 'processing_ledger');
+    toast.success('Processing ledger exported as CSV!');
+  };
+
+  return (
+    <div className="flex min-h-screen bg-[#F1F8E9]">
+      <Sidebar />
+      <div className="flex-1 ml-64">
+        <Header title="Processing Ledger" subtitle="All processing records" />
+        <main className="p-8 max-w-[1600px] mx-auto space-y-4">
+          {/* Date Filters + Export */}
+          <div className="flex flex-wrap items-end gap-3">
+            <div>
+              <label className="text-xs tracking-[0.15em] uppercase font-semibold text-[#4A554C] mb-1 block">From</label>
+              <div className="flex items-center gap-2 border border-[#8D6E63]/30 rounded-md px-3 py-2 bg-white">
+                <CalendarDays className="w-4 h-4 text-[#758077]" strokeWidth={1.5} />
+                <input data-testid="plant-date-from" type="date" value={dateFrom} onChange={e => setDateFrom(e.target.value)}
+                  className="bg-transparent text-sm text-[#1A1C1A] outline-none" />
+              </div>
+            </div>
+            <div>
+              <label className="text-xs tracking-[0.15em] uppercase font-semibold text-[#4A554C] mb-1 block">To</label>
+              <div className="flex items-center gap-2 border border-[#8D6E63]/30 rounded-md px-3 py-2 bg-white">
+                <CalendarDays className="w-4 h-4 text-[#758077]" strokeWidth={1.5} />
+                <input data-testid="plant-date-to" type="date" value={dateTo} onChange={e => setDateTo(e.target.value)}
+                  className="bg-transparent text-sm text-[#1A1C1A] outline-none" />
+              </div>
+            </div>
+            {(dateFrom || dateTo) && (
+              <button onClick={() => { setDateFrom(''); setDateTo(''); }}
+                className="px-3 py-2 text-xs font-medium text-[#8D6E63] hover:bg-[#8D6E63]/10 rounded-md transition-colors">
+                Clear
+              </button>
+            )}
+            <div className="ml-auto">
+              <button data-testid="plant-export-csv" onClick={handleExport}
+                className="flex items-center gap-2 bg-[#1B5E20] text-white hover:bg-[#144A18] rounded-md px-4 py-2 text-sm font-medium transition-colors shadow-sm">
+                <Download className="w-4 h-4" strokeWidth={1.5} /> Export CSV
+              </button>
+            </div>
+          </div>
+
+          <Card className="border-[#8D6E63]/15 bg-white shadow-sm">
+            <CardContent className="p-0">
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-[#F1F8E9]/50">
+                    <TableHead className="text-[#4A554C]">Date</TableHead>
+                    <TableHead className="text-[#4A554C]">Ward</TableHead>
+                    <TableHead className="text-[#4A554C]">Type</TableHead>
+                    <TableHead className="text-[#4A554C]">Received</TableHead>
+                    <TableHead className="text-[#4A554C]">Processed</TableHead>
+                    <TableHead className="text-[#4A554C]">CBG (kg)</TableHead>
+                    <TableHead className="text-[#4A554C]">Manure (kg)</TableHead>
+                    <TableHead className="text-[#4A554C]">Credits</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filtered.length === 0 ? (
+                    <TableRow><TableCell colSpan={8} className="text-center text-sm text-[#758077] py-8">No records found</TableCell></TableRow>
+                  ) : (
+                    filtered.map(log => (
+                      <TableRow key={log.id} data-testid={`processing-row-${log.id}`}>
+                        <TableCell className="text-sm text-[#4A554C]">
+                          {new Date(log.timestamp).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}
+                        </TableCell>
+                        <TableCell className="text-sm font-medium">{log.wardName}</TableCell>
+                        <TableCell>
+                          <Badge className="bg-[#E8F5E9] text-[#1B5E20] border-0 text-xs capitalize">{log.wasteType.replace('_', ' ')}</Badge>
+                        </TableCell>
+                        <TableCell className="text-sm">{log.wasteReceived.toLocaleString('en-IN')} kg</TableCell>
+                        <TableCell className="text-sm">{log.wasteProcessed.toLocaleString('en-IN')} kg</TableCell>
+                        <TableCell className="text-sm font-medium text-[#1B5E20]">{log.cbgOutput}</TableCell>
+                        <TableCell className="text-sm font-medium text-[#8D6E63]">{log.manureGenerated}</TableCell>
+                        <TableCell className="text-sm font-medium text-[#1B5E20]">{log.carbonCredits}</TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+          <p className="text-xs text-[#758077]">{filtered.length} records shown</p>
         </main>
       </div>
     </div>
