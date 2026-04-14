@@ -59,7 +59,6 @@ chainlit.md
 .ac
 
 # Deployment
-.vercel
 
 # Data and databases
 agenthub/agents/youtube/db
@@ -138,3 +137,6 @@ credentials.json
 *.pem
 *.key
 .credentials
+
+# Local Netlify folder
+.netlify
