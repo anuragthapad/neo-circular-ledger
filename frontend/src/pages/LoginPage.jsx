@@ -183,8 +183,9 @@ export default function LoginPage() {
           </form>
 
           {/* Quick Access Cards */}
-          <div className="mt-10">
-            <p className="text-xs tracking-[0.15em] uppercase font-semibold text-[#758077] mb-3">
+          <div className="mt-10 p-4 bg-gradient-to-r from-[#8D6E63]/5 to-transparent rounded-lg border border-[#8D6E63]/20">
+            <p className="text-sm tracking-[0.15em] uppercase font-bold text-[#8D6E63] mb-3 flex items-center gap-2">
+              <span className="inline-block w-2 h-2 rounded-full bg-[#8D6E63] animate-pulse"></span>
               Quick Access — Demo Accounts
             </p>
             <div className="grid grid-cols-2 gap-3">
